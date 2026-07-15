@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF分批買賣策略規劃與模擬工具</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900">ETF 資金分批策略指南</h1>
+                    <p class="text-xs text-slate-500">中長期穩健投資的紀律化工具</p>
+                </div>
+            </div>
+            <nav class="flex gap-2">
+                <a href="#buy-section" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 rounded-md transition-colors">分批買入</a>
+                <a href="#sell-section" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 rounded-md transition-colors">分批賣出</a>
+                <a href="#simulator" class="px-3.5 py-1.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors">實戰規劃器</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12">
+        <section class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent"></div>
+            <div class="relative z-10 max-w-3xl space-y-4">
+                <span class="bg-indigo-500/30 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">核心心法</span>
+                <h2 class="text-3xl font-extrabold sm:text-4xl tracking-tight">克服人性貪婪與恐懼的「分批科學」</h2>
+                <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+                    投資 ETF 的最大優勢是「分散個股風險」，而分批操作則是用時間來「分散市場擇時風險」。不論你是手握一筆大資金想進場，還是想在中長期合理獲利了結，分批買賣能確保你的建倉與離場成本落在合理的平均水準。
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                    <div class="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <div class="text-xs text-indigo-300 font-medium">降低波動傷害</div>
+                        <div class="text-xl font-bold mt-1">平攤持有成本</div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <div class="text-xs text-indigo-300 font-medium">免除預測高低點</div>
+                        <div class="text-xl font-bold mt-1">極佳的心理適應性</div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <div class="text-xs text-indigo-300 font-medium">中長期勝率指標</div>
+                        <div class="text-xl font-bold mt-1">建立紀律防守線</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="buy-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 買入策略 Scale-In
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">為什麼要分批買入？</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    當你手頭有一大筆資金（例如繼承、年終獎金或先前出清標的的資金）想投入美股 ETF 時，一次性投入（Lump Sum）雖然在長期看漲的市場中歷史回測報酬率最高，但**心理壓力極大**。
+                    如果剛好買在歷史高點，隨後的大跌極易導致投資人恐慌砍倉。
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-emerald-600 font-bold">A</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">定期定額法 (DCA - Dollar Cost Averaging)</h4>
+                            <p class="text-sm text-slate-500 mt-1">不論市場高低，固定時間投入固定金額（例如每月 1 號投入 $1,000 美元）。這最適合忙碌、不想看盤的中長期投資者，能自動在價格低時買進更多股數，價格高時買進較少股數。</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-emerald-600 font-bold">B</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">金字塔逢低加碼法 (Pyramiding)</h4>
+                            <p class="text-sm text-slate-500 mt-1">將大筆資金分成數等份，並設定「市場每下跌一定比例（例如 5% 或 10%）」便加碼買入一筆。這種方式能確保你的建倉成本極度向市場底部靠攏。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                <div>
+                    <h4 class="font-bold text-slate-900 text-lg">📊 分批買入 (DCA) 直觀模擬器</h4>
+                    <p class="text-xs text-slate-500 mt-1">模擬在不同的市場行情下，分次買入 vs 一次性買入的平均成本差異</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">選擇模擬的市場走勢</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="btn-trend-v" onclick="selectTrend('v')" class="px-3 py-2 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-700 transition-all">先跌後漲 (V型)</button>
+                            <button id="btn-trend-up" onclick="selectTrend('up')" class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-200 hover:border-indigo-600 text-slate-600 transition-all">持續走高 (牛市)</button>
+                            <button id="btn-trend-down" onclick="selectTrend('down')" class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-200 hover:border-indigo-600 text-slate-600 transition-all">震盪走低 (熊市)</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4 space-y-3">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>每次投入資金：<strong class="text-slate-800">$1,000 美元</strong></span>
+                            <span>分批次數：<strong class="text-slate-800">5 次</strong></span>
+                        </div>
+                        <div class="h-32 flex items-end justify-between gap-1 pt-4 pb-2 border-b border-slate-200" id="chart-container">
+                            <!-- Visual Bars rendered by JS -->
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>第 1 次</span>
+                            <span>第 2 次</span>
+                            <span>第 3 次</span>
+                            <span>第 4 次</span>
+                            <span>第 5 次</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Results -->
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="p-3 bg-red-50 rounded-xl border border-red-100">
+                            <span class="text-[10px] font-semibold text-red-700 uppercase">一次性全投成本 (第1次)</span>
+                            <div class="text-lg font-bold text-red-900 mt-0.5" id="val-lump-cost">$100.00</div>
+                        </div>
+                        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <span class="text-[10px] font-semibold text-emerald-700 uppercase">分批買入平均成本</span>
+                            <div class="text-lg font-bold text-emerald-900 mt-0.5" id="val-dca-cost">$85.20</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 italic text-center" id="trend-explanation">
+                        * 先跌後漲行情下，分批買入能讓你在低點吸取便宜籌碼，顯著平攤購入成本！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sell-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start pt-6">
+            <!-- Scaling Out Planner Form -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6 order-last lg:order-first">
+                <div>
+                    <h4 class="font-bold text-slate-900 text-lg">📝 分批賣出（停利/變現）規劃器</h4>
+                    <p class="text-xs text-slate-500 mt-1">針對中長期帳戶，科學規劃分批出場的金額與時間節點</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">預計要調整/贖回的 ETF 總市值 (USD)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-slate-400 text-sm">$</span>
+                            <input type="number" id="input-portfolio-val" value="30000" class="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">計劃分幾批賣出</label>
+                            <select id="select-batches" onchange="generateSellPlan()" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="3">分 3 批</option>
+                                <option value="4" selected>分 4 批</option>
+                                <option value="5">分 5 批</option>
+                                <option value="6">分 6 批</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">分批策略類型</label>
+                            <select id="select-strategy" onchange="generateSellPlan()" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="time" selected>時間等份法 (最無痛)</option>
+                                <option value="ladder">價格階梯法 (追求高回報)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Generated Schedule -->
+                    <div class="space-y-3 pt-2">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">建議分批執行時間與金額</label>
+                        <div class="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden" id="plan-output">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> 賣出策略 Scale-Out
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">如何聰明地分批賣出？</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    投資人最常遇到的痛點是：**「一賣就漲，不賣就跌」**。分批賣出（Scale-Out）能有效解決這種心理摩擦力。當你積累了不錯的獲利，或是需要變現日常生活資金時，可以使用以下兩種分批方式：
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-indigo-600 font-bold">1</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">時間等份法 (Time-Based Selling)</h4>
+                            <p class="text-sm text-slate-500 mt-1">每隔固定時間（如每季、每半年）固定賣出總資產的 1/N。例如想在一年內變現，就每三個月賣出 25%。**這是最適合中長期穩定提領、完全不需要預測市場的紀律作法。**</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-indigo-600 font-bold">2</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">價格階梯法 (Laddered Profit Taking)</h4>
+                            <p class="text-sm text-slate-500 mt-1">針對波動較大的類股 ETF（如 QQQ、VGT 或產業板塊）。設定目標價位，每當股價上漲 5% 或 10%，就自動獲利了結一小部分（例如賣出 20% 持股），以此鎖定獲利，同時保留剩餘部位繼續享受牛市紅利。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-indigo-50 rounded-2xl border border-indigo-100 p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div class="md:col-span-2 space-y-2">
+                <h4 class="font-bold text-slate-950 text-xl">💡 分批思維與「資產再平衡」的完美結合</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    分批買賣不只是被動地進出場，它更是維持投資組合「健康比例」的最優手段。
+                    你可以將「賣出」漲太多的科技股 ETF（例如 QQQ），與「買入」落後、佔比降低的大盤 ETF（例如 VT/VTI）同時進行，在帳戶內自動實現「賣高買低」的複利效應。
+                </p>
+            </div>
+            <div class="flex justify-end">
+                <a href="#simulator" class="w-full md:w-auto text-center px-5 py-3 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-100 transition-all text-sm">
+                    立即開始我的配置
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-slate-400 text-xs">
+        <p>© 2026 ETF 資金配置智慧指南. 全球與美股市場適用.</p>
+        <p class="mt-1 text-slate-300">本指南所提供之模擬工具僅供學術與紀律化策略規劃參考，不構成任何主觀投資建議。</p>
+    </footer>
+
+    <script>
+        // Preset Trends for DCA simulator
+        const TREND_DATA = {
+            v: {
+                prices: [100, 70, 50, 80, 110],
+                desc: "* 先跌後漲 (V型) 行情：分批買入平均成本約為 $82.00，大幅低於第一天買入的 $100.00。在市場下跌時，你買進了更多的股數！"
+            },
+            up: {
+                prices: [100, 110, 120, 130, 140],
+                desc: "* 持續走高 (牛市) 行情：在單邊上漲市場中，分批買入成本為 $120.00，略高於第一天買入的 $100.00。雖然在牛市中全投表現最佳，但分批買入能在心理上幫你克服不敢進場的障礙。"
+            },
+            down: {
+                prices: [100, 90, 80, 70, 60],
+                desc: "* 震盪走低 (熊市) 行情：分批買入平均成本為 $80.00，遠低於第一天直接全投的 $100.00。分批買入能在震盪下跌的市場中提供極佳的防護網，避免資金一次套牢。"
+            }
+        };
+
+        let currentTrend = 'v';
+
+        function selectTrend(trend) {
+            currentTrend = trend;
+            
+            // Toggle active classes on buttons
+            ['v', 'up', 'down'].forEach(t => {
+                const btn = document.getElementById(`btn-trend-${t}`);
+                if (t === trend) {
+                    btn.className = "px-3 py-2 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-700 transition-all";
+                } else {
+                    btn.className = "px-3 py-2 text-xs font-bold rounded-lg border border-slate-200 hover:border-indigo-600 text-slate-600 transition-all";
+                }
+            });
+
+            renderDCASimulator();
+        }
+
+        function renderDCASimulator() {
+            const container = document.getElementById('chart-container');
+            container.innerHTML = '';
+            
+            const data = TREND_DATA[currentTrend];
+            const prices = data.prices;
+            const maxPrice = Math.max(...prices, 100);
+
+            // Calculate DCA average cost: Harmonic mean or simply average for equal amounts
+            // Total invested: 5 * $1000 = $5000. Shares bought each time = 1000 / price
+            let totalShares = 0;
+            prices.forEach(p => {
+                totalShares += 1000 / p;
+            });
+            const dcaAverageCost = 5000 / totalShares;
+            const lumpCost = prices[0];
+
+            // Render bars
+            prices.forEach((price, idx) => {
+                const heightPercent = (price / maxPrice) * 100;
+                
+                const barWrapper = document.createElement('div');
+                barWrapper.className = "flex-1 flex flex-col items-center gap-1 group relative cursor-pointer";
+                
+                const priceLabel = document.createElement('span');
+                priceLabel.className = "text-[10px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5";
+                priceLabel.innerText = `$${price}`;
+                
+                const bar = document.createElement('div');
+                bar.className = `w-full rounded-t-md transition-all duration-300 ${idx === 0 ? 'bg-indigo-400' : 'bg-indigo-600'} hover:bg-indigo-500`;
+                bar.style.height = `${heightPercent}%`;
+                
+                const shareIndicator = document.createElement('span');
+                shareIndicator.className = "text-[9px] text-slate-400 mt-1";
+                shareIndicator.innerText = `${(1000/price).toFixed(1)}股`;
+
+                barWrapper.appendChild(priceLabel);
+                barWrapper.appendChild(bar);
+                barWrapper.appendChild(shareIndicator);
+                container.appendChild(barWrapper);
+            });
+
+            document.getElementById('val-lump-cost').innerText = `$${lumpCost.toFixed(2)}`;
+            document.getElementById('val-dca-cost').innerText = `$${dcaAverageCost.toFixed(2)}`;
+            document.getElementById('trend-explanation').innerText = data.desc;
+        }
+
+        function generateSellPlan() {
+            const valInput = parseFloat(document.getElementById('input-portfolio-val').value) || 30000;
+            const batches = parseInt(document.getElementById('select-batches').value) || 4;
+            const strategy = document.getElementById('select-strategy').value;
+            const planOutput = document.getElementById('plan-output');
+            
+            planOutput.innerHTML = '';
+
+            const today = new Date();
+
+            for (let i = 1; i <= batches; i++) {
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between p-3 bg-white hover:bg-slate-50 transition-colors";
+                
+                const batchNum = document.createElement('div');
+                batchNum.className = "flex items-center gap-2";
+                batchNum.innerHTML = `
+                    <span class="w-5 h-5 flex items-center justify-center bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full">${i}</span>
+                    <div>
+                        <span class="text-sm font-semibold text-slate-800">第 ${i} 批次</span>
+                        <p class="text-[10px] text-slate-400 mt-0.5" id="date-lbl-${i}"></p>
+                    </div>
+                `;
+
+                // Calculate portion based on strategy
+                let pct = 100 / batches;
+                let amt = valInput / batches;
+                let conditionText = '';
+
+                if (strategy === 'time') {
+                    // Equal times, quarterly spacing
+                    const futureDate = new Date(today);
+                    futureDate.setMonth(today.getMonth() + (i - 1) * 3);
+                    const dateString = `${futureDate.getFullYear()}/${String(futureDate.getMonth() + 1).padStart(2, '0')}/${String(futureDate.getDate()).padStart(2, '0')}`;
+                    
+                    row.appendChild(batchNum);
+                    
+                    const meta = document.createElement('div');
+                    meta.className = "text-right";
+                    meta.innerHTML = `
+                        <span class="text-sm font-bold text-slate-900">$${amt.toLocaleString('en-US', {maximumFractionDigits: 0})} USD</span>
+                        <p class="text-[10px] text-emerald-600 font-medium mt-0.5">預定執行日: ${dateString}</p>
+                    `;
+                    row.appendChild(meta);
+                } else {
+                    // Ladder spacing, scaled based on price milestones
+                    const baseMilestone = 5; // +5% increments
+                    const targetPct = (i - 1) * baseMilestone;
+                    
+                    row.appendChild(batchNum);
+                    
+                    const meta = document.createElement('div');
+                    meta.className = "text-right";
+                    meta.innerHTML = `
+                        <span class="text-sm font-bold text-slate-900">$${amt.toLocaleString('en-US', {maximumFractionDigits: 0})} USD</span>
+                        <p class="text-[10px] text-indigo-600 font-medium mt-0.5">${targetPct === 0 ? '當前價位立即執行' : `當股價再上漲 +${targetPct}%`}</p>
+                    `;
+                    row.appendChild(meta);
+                }
+
+                planOutput.appendChild(row);
+            }
+        }
+
+        // Initialize on window load
+        window.onload = function() {
+            selectTrend('v');
+            generateSellPlan();
+        }
+    </script>
+</body>
+</html>
