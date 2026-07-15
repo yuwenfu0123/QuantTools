@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個股波動度量化分析與判斷指南</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900">個股波動度量化分析指南</h1>
+                    <p class="text-xs text-slate-500">用學術與科學量化指標，透視個股風險體質</p>
+                </div>
+            </div>
+            <nav class="flex gap-2">
+                <a href="#theory" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 rounded-md transition-colors">四大理論指標</a>
+                <a href="#scanner" class="px-3.5 py-1.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm transition-colors">動態模擬沙盒</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12 flex-1 w-full">
+        
+        <section class="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent"></div>
+            <div class="relative z-10 max-w-3xl space-y-4">
+                <span class="bg-indigo-500/30 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">理論基石</span>
+                <h2 class="text-3xl font-extrabold sm:text-4xl tracking-tight">個股波動與「非系統性風險」</h2>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    投資 ETF 時，我們面對的是<b>「系統性風險（Systematic Risk）」</b>（即大盤齊漲齊跌的風險）；但投資個股時，我們必須額外承受<b>「非系統性風險（Unsystematic Risk）」</b>（公司爆發醜聞、財報暴雷、產品瑕疵等個案風險）。
+                </p>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    要判斷一檔股票是溫和還是劇烈，財務金融學提供了四大關鍵指標。理解這些指標，你就能用科學方法決定這檔股票需要多寬的<b>「移動停損安全緩衝帶」</b>。
+                </p>
+            </div>
+        </section>
+
+        <section id="theory" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Card 1: Beta -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 bg-indigo-50 text-indigo-700 rounded-lg text-lg font-bold">1</span>
+                        <h3 class="font-bold text-slate-900 text-lg">貝塔值 (Beta, β) —— 系統性風險指標</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        量化<b>個股相對於「整體市場（大盤）」的敏感度</b>。以標普 500 指數作為基準（Beta ＝ 1）：
+                    </p>
+                    <ul class="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
+                        <li><b>&beta; &lt; 1 (溫和)</b>：大盤跌 1% 時，它可能只跌 0.5%（如可口可樂 KO）。</li>
+                        <li><b>&beta; &gt; 1 (劇烈)</b>：大盤漲跌 1% 時，它會放大波動（如特斯拉 TSLA, &beta; 約 2.1）。</li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-indigo-600 font-medium">
+                    💡 理論應用：Beta 越高的個股，大盤回檔時它會跌得更深，需要拉寬停損比例。
+                </div>
+            </div>
+
+            <!-- Card 2: Standard Deviation -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 bg-teal-50 text-teal-700 rounded-lg text-lg font-bold">2</span>
+                        <h3 class="font-bold text-slate-900 text-lg">標準差 (Standard Deviation, σ) —— 總風險</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        統計學指標，衡量<b>個股每日報酬率相對於其「歷史平均值」的分散程度</b>。標準差越高，代表股價越偏離均值，暴漲暴跌機率越大。
+                    </p>
+                    <ul class="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
+                        <li><b>低標準差 (溫和股)</b>：股價每天像心電圖般微幅震盪，極少出現單日 +/- 3% 以上行情。</li>
+                        <li><b>高標準差 (劇烈股)</b>：經常出現單日 +/- 5% 甚至 10% 的巨大跳空。</li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-teal-600 font-medium">
+                    💡 理論應用：年化標準差超過 35% 即屬高波動，通常為科技、生技或高成長股。
+                </div>
+            </div>
+
+            <!-- Card 3: ATR -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 bg-amber-50 text-amber-700 rounded-lg text-lg font-bold">3</span>
+                        <h3 class="font-bold text-slate-900 text-lg">真實波動幅度均值 (ATR) —— 實戰空間</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        技術分析大師威爾德（Wilder）提出，衡量<b>個股在過去一段時間（通常是 14 天）平均每日的「真實交易範圍（高低價差與跳空差距）」之絕對金額。</b>
+                    </p>
+                    <ul class="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
+                        <li><b>ATR 佔股價比率低</b>：每日正常上下波動極窄。</li>
+                        <li><b>ATR 佔股價比率高</b>：每日正常呼吸（震盪）的寬度就很寬，不能用太窄的停損。</li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-amber-600 font-medium">
+                    💡 理論應用：移動停損一般應設定為 2.5 ~ 3 倍的 ATR 空間，避免被正常市場噪音「洗出場」。
+                </div>
+            </div>
+
+            <!-- Card 4: Implied Volatility -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 bg-rose-50 text-rose-700 rounded-lg text-lg font-bold">4</span>
+                        <h3 class="font-bold text-slate-900 text-lg">隱含波動率 (Implied Volatility, IV) —— 未來預期</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        與歷史數據不同，IV 是<b>由「選擇權（Options）市場價格」反推，代表市場群眾對這檔個股「未來」波動強度的預期。</b>
+                    </p>
+                    <ul class="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
+                        <li><b>IV 驟升時</b>：通常發生在財報公佈（Earnings Report）前夕，代表市場預期股價可能出現大爆發或大崩跌。</li>
+                        <li><b>IV 常年偏低</b>：如民生消費、公用事業股，市場認定未來毫無懸念。</li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-rose-600 font-medium">
+                    💡 理論應用：個股 IV 偏高時，暗示市場正處於高度投機與不確定性中，應保守以對。
+                </div>
+            </div>
+        </section>
+
+        <section id="scanner" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">📊 個股動態波動沙盒模擬器</h3>
+                    <p class="text-xs text-slate-500 mt-1">選取熱門美股，或手動調整 Beta 與標準差，觀察個股（藍線）相對於大盤基準（灰線）與移動防禦線（紅線）的即時變化</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn-play" onclick="toggleSimulation()" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                        <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <span id="play-text">啟動行情模擬</span>
+                    </button>
+                    <button onclick="resetSimulation()" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all">
+                        重置沙盒
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTROLS CONTAINER -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-150">
+                <!-- Preset Stocks -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">選擇範例美股體質</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="preset-jnj" onclick="applyPreset('jnj')" class="px-3 py-2 text-xs font-semibold rounded-lg border text-left transition-all bg-white hover:bg-slate-50">
+                            <b>JNJ (強生)</b>
+                            <p class="text-[10px] text-slate-400 mt-0.5">防禦型股 · 溫和波動</p>
+                        </button>
+                        <button id="preset-aapl" onclick="applyPreset('aapl')" class="px-3 py-2 text-xs font-semibold rounded-lg border text-left transition-all bg-white hover:bg-slate-50">
+                            <b>AAPL (蘋果)</b>
+                            <p class="text-[10px] text-slate-400 mt-0.5">科技龍頭 · 穩健波動</p>
+                        </button>
+                        <button id="preset-nvda" onclick="applyPreset('nvda')" class="px-3 py-2 text-xs font-semibold rounded-lg border text-left transition-all bg-white hover:bg-slate-50">
+                            <b>NVDA (輝達)</b>
+                            <p class="text-[10px] text-slate-400 mt-0.5">高成長股 · 劇烈波動</p>
+                        </button>
+                        <button id="preset-tsla" onclick="applyPreset('tsla')" class="px-3 py-2 text-xs font-semibold rounded-lg border text-left transition-all bg-white hover:bg-slate-50">
+                            <b>TSLA (特斯拉)</b>
+                            <p class="text-[10px] text-slate-400 mt-0.5">投機屬性 · 極端波動</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Parameters Customization -->
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                            <span>系統性 Beta 值 (β)</span>
+                            <span id="lbl-beta" class="text-indigo-600">1.00</span>
+                        </div>
+                        <input type="range" id="input-beta" min="0.3" max="2.5" step="0.05" value="1.00" oninput="updateCustomParams()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <div class="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                            <span>0.3 (防禦)</span>
+                            <span>1.0 (等同大盤)</span>
+                            <span>2.5 (高度敏感)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                            <span>非系統性標準差 (固有波動)</span>
+                            <span id="lbl-std" class="text-teal-600">15%</span>
+                        </div>
+                        <input type="range" id="input-std" min="5" max="50" step="1" value="15" oninput="updateCustomParams()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                        <div class="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                            <span>5% (極平穩)</span>
+                            <span>25% (顯著震盪)</span>
+                            <span>50% (雲霄飛車)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Diagnosis Card -->
+                <div class="bg-white rounded-xl p-4 border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">當前個股風險診斷</span>
+                        <div id="risk-badge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold mt-1 bg-emerald-50 text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 溫和保守型 (Low Volatility)
+                        </div>
+                    </div>
+                    
+                    <div class="pt-3 border-t border-slate-100 space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">建議移動停損安全緩衝：</span>
+                            <strong id="diag-stop-pct" class="text-rose-600 font-bold">10%</strong>
+                        </div>
+                        <p id="diag-desc" class="text-[10px] text-slate-400 leading-normal">
+                            本標的屬防禦性資產。每日正常雜訊較低，不需太寬鬆的停損即可抱牢。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE CANVAS/CHART -->
+            <div class="relative bg-slate-900 rounded-xl overflow-hidden border border-slate-800" style="height: 380px;">
+                <!-- Chart Legend Overlay -->
+                <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-sm p-3 rounded-lg border border-slate-800 text-xs space-y-1.5 z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-slate-500 inline-block"></span>
+                        <span class="text-slate-300">SPY 大盤基準線 (Beta = 1.0)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-indigo-400 inline-block"></span>
+                        <span class="text-slate-300">個股即時走勢線</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-rose-500 inline-block"></span>
+                        <span class="text-slate-300">建議移動防線 (移動停損價)</span>
+                    </div>
+                </div>
+
+                <div id="trigger-badge" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-rose-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-xl border border-rose-500 scale-0 transition-transform duration-300 z-20 flex items-center gap-2">
+                    <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>觸發移動停損！股價跌破正常日波動防區！</span>
+                </div>
+
+                <canvas id="vol-canvas" class="w-full h-full block"></canvas>
+            </div>
+
+            <!-- SIMULATION LOGS / INSIGHTS -->
+            <div id="simulation-summary" class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-900 space-y-1.5">
+                <span class="font-bold text-indigo-950 text-sm">💡 波動度與停損策略日誌</span>
+                <p id="log-text" class="leading-relaxed">
+                    點擊「啟動行情模擬」來觀察股價的實時動態。注意：在同一波大盤行情中，高 Beta 與高標準差的股票，上下彈跳的幅度將顯著拉大，極容易碰觸到太過緊繃的停損線。
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-slate-400 text-xs">
+        <p>© 2026 財務金融個股波動量化沙盒實驗室. 專供科學紀律投資策略規劃.</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('vol-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let animationId = null;
+        let isPlaying = false;
+        
+        let currentStep = 0;
+        let maxSteps = 150;
+        
+        // Simulation parameter variables
+        let beta = 1.0;
+        let stdDev = 15; // percentage representation
+        let stopPct = 10; // calculated recommended trailing stop pct
+        
+        let marketPath = [];
+        let stockPath = [];
+        let peakHistory = [];
+        let stopHistory = [];
+        let runningPeak = 100;
+        
+        let hasTriggered = false;
+        let triggerIndex = -1;
+
+        // Stock Presets definition
+        const PRESETS = {
+            jnj: { name: "JNJ (強生)", beta: 0.45, std: 10, stop: 8, label: "溫和防禦型", style: "bg-emerald-50 text-emerald-700", border: "bg-emerald-500", desc: "強生屬於典型必需消費/生技醫療抗震股。不論市場好壞，營運波動極低。Beta 非常小，大盤重挫時它通常能跌幅減半。停損僅需 8-10% 即可抱得安穩。" },
+            aapl: { name: "AAPL (蘋果)", beta: 1.10, std: 18, stop: 14, label: "穩健大型科技股", style: "bg-blue-50 text-blue-700", border: "bg-blue-500", desc: "蘋果是典型穩健高成長企業，雖然是科技股，但擁有強勁現金流。波動程度略高於大盤，建議採用 12-15% 的移動停損點，以防短線大盤震盪時被震洗出清。" },
+            nvda: { name: "NVDA (輝達)", beta: 1.85, std: 35, stop: 22, label: "劇烈高成長型", style: "bg-amber-50 text-amber-700", border: "bg-amber-500", desc: "輝達是高速成長與投機買盤聚焦的硬體晶片巨頭。雖然上攻動能極強，但其非系統性風險極高，一有風吹草動極易大跌。必須拉寬防線至 20-25% 停損，否則容易因正常大波動而慘遭斷頭。" },
+            tsla: { name: "TSLA (特斯拉)", beta: 2.15, std: 45, stop: 30, label: "極端波動型", style: "bg-rose-50 text-rose-700", border: "bg-rose-500", desc: "特斯拉受其創辦人言論、高本益比以及市場空頭狙擊影響，是投機性極高的高風險資產。其震盪幅度屬於極端範疇。如果要安全擁抱趨勢，移動防守線必須至少拉寬至 28-35% 以上。" }
+        };
+
+        // Resize handler
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            draw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function generatePaths() {
+            marketPath = [100];
+            stockPath = [100];
+            
+            let marketCurrent = 100;
+            let stockCurrent = 100;
+
+            // Generate a standard market cycle path (e.g. rising first, then a steep consolidation)
+            for (let i = 1; i < maxSteps; i++) {
+                let mNoise = Math.random() * 3 - 1.45; // daily general market noise
+                
+                // create a macro wave
+                if (i < 85) {
+                    marketCurrent += mNoise + 0.35; // bullish wave
+                } else if (i < 120) {
+                    marketCurrent += mNoise - 0.9;  // consolidation wave
+                } else {
+                    marketCurrent += mNoise + 0.2;  // stabilizing
+                }
+                
+                marketPath.push(Math.max(marketCurrent, 20));
+
+                // Stock path = Market Trend * Beta + Unsystematic Risk (Idiosyncratic Noise based on stddev)
+                let sNoise = (Math.random() * 2 - 1.0) * (stdDev / 4); 
+                let mDelta = (marketPath[i] - marketPath[i-1]);
+                
+                // Add systematic component + unsystematic component
+                stockCurrent += (mDelta * beta) + sNoise;
+                stockPath.push(Math.max(stockCurrent, 10));
+            }
+        }
+
+        // Apply pre-configured stock presets
+        function applyPreset(key) {
+            const p = PRESETS[key];
+            
+            // Set slider UI
+            document.getElementById('input-beta').value = p.beta;
+            document.getElementById('input-std').value = p.std;
+            
+            // Highlight chosen button
+            ['jnj', 'aapl', 'nvda', 'tsla'].forEach(k => {
+                const btn = document.getElementById(`preset-${k}`);
+                if (k === key) {
+                    btn.className = "px-3 py-2 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-700 text-left transition-all shadow-sm";
+                } else {
+                    btn.className = "px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-left transition-all text-slate-600 hover:bg-slate-50";
+                }
+            });
+
+            updateCustomParams();
+            resetSimulation();
+        }
+
+        function updateCustomParams() {
+            beta = parseFloat(document.getElementById('input-beta').value);
+            stdDev = parseFloat(document.getElementById('input-std').value);
+
+            document.getElementById('lbl-beta').innerText = beta.toFixed(2);
+            document.getElementById('lbl-std').innerText = `${stdDev}%`;
+
+            // Classify Volatility Risk Profile and Calculate optimal Trailing Stop %
+            const volScore = (beta * 10) + (stdDev * 1.5);
+            let riskLabel = "";
+            let riskStyle = "";
+            let riskBorder = "";
+            let riskDesc = "";
+            
+            if (volScore < 25) {
+                stopPct = Math.round(5 + (beta * 4) + (stdDev * 0.2));
+                riskLabel = "溫和保守型 (Low Volatility)";
+                riskStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                riskBorder = "bg-emerald-500";
+                riskDesc = "本標的屬防禦性資產（如日常必需品、公用事業）。日震盪雜訊極小，適合短防守。建議移動防線設在 " + stopPct + "%。";
+            } else if (volScore < 45) {
+                stopPct = Math.round(8 + (beta * 5) + (stdDev * 0.25));
+                riskLabel = "穩健成長型 (Moderate Volatility)";
+                riskStyle = "bg-blue-50 text-blue-700 border-blue-200";
+                riskBorder = "bg-blue-500";
+                riskDesc = "中低度風險標的（如大型傳統科技、金融、大盤ETF）。具備穩定成長性，建議移動防守線拉開至 " + stopPct + "%，防止因日常短期回踩被迫出場。";
+            } else {
+                stopPct = Math.round(10 + (beta * 6) + (stdDev * 0.3));
+                riskLabel = "高波動/劇烈投機型 (High Volatility)";
+                riskStyle = "bg-rose-50 text-rose-700 border-rose-200";
+                riskBorder = "bg-rose-500";
+                riskDesc = "高風險高波動標的。極易受到市場情緒或消息面引發劇烈震幅。移動停損防守線必須「極寬（建議 " + stopPct + "% 以上）」，否則無法抱緊大趨勢波段。";
+            }
+
+            const badge = document.getElementById('risk-badge');
+            badge.className = `inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold mt-1 ${riskStyle} border`;
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${riskBorder}"></span> ${riskLabel}`;
+            
+            document.getElementById('diag-stop-pct').innerText = `${stopPct}%`;
+            document.getElementById('diag-desc').innerText = riskDesc;
+
+            // Remove preset selection highlight if customized
+            let matchedPreset = false;
+            for (let k in PRESETS) {
+                if (PRESETS[k].beta === beta && PRESETS[k].std === stdDev) {
+                    matchedPreset = true;
+                }
+            }
+            if (!matchedPreset) {
+                ['jnj', 'aapl', 'nvda', 'tsla'].forEach(k => {
+                    document.getElementById(`preset-${k}`).className = "px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-left transition-all text-slate-600 hover:bg-slate-50";
+                });
+            }
+
+            recalculateTrailingStops();
+            draw();
+        }
+
+        function recalculateTrailingStops() {
+            if (stockPath.length === 0) return;
+
+            peakHistory = [];
+            stopHistory = [];
+            runningPeak = stockPath[0];
+            hasTriggered = false;
+            triggerIndex = -1;
+
+            for (let i = 0; i <= currentStep; i++) {
+                let sPrice = stockPath[i];
+                if (sPrice > runningPeak) {
+                    runningPeak = sPrice;
+                }
+                let currentStop = runningPeak * (1 - stopPct / 100);
+
+                peakHistory.push(runningPeak);
+                stopHistory.push(currentStop);
+
+                if (sPrice <= currentStop && !hasTriggered) {
+                    hasTriggered = true;
+                    triggerIndex = i;
+                }
+            }
+        }
+
+        // Play and Pause controller functions
+        function toggleSimulation() {
+            if (isPlaying) {
+                pauseSimulation();
+            } else {
+                startSimulation();
+            }
+        }
+
+        function startSimulation() {
+            if (currentStep >= maxSteps - 1 || hasTriggered) {
+                resetSimulation();
+            }
+            isPlaying = true;
+            document.getElementById('play-text').innerText = "暫停模擬";
+            document.getElementById('play-icon').innerHTML = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>';
+            animate();
+        }
+
+        function pauseSimulation() {
+            isPlaying = false;
+            document.getElementById('play-text').innerText = "啟動行情模擬";
+            document.getElementById('play-icon').innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetSimulation() {
+            pauseSimulation();
+            generatePaths();
+            
+            currentStep = 0;
+            runningPeak = stockPath[0];
+            hasTriggered = false;
+            triggerIndex = -1;
+
+            recalculateTrailingStops();
+            document.getElementById('trigger-badge').classList.remove('scale-100');
+            document.getElementById('trigger-badge').classList.add('scale-0');
+            
+            updateLog();
+            draw();
+        }
+
+        function updateLog() {
+            const logEl = document.getElementById('log-text');
+            if (currentStep === 0) {
+                logEl.innerHTML = `已重置模擬路徑。當前設定個股：<b>Beta = ${beta.toFixed(2)}</b>，<b>固有標準差 = ${stdDev}%</b>。建議使用 <b>${stopPct}%</b> 移動停損防護線。點擊「啟動行情模擬」來觀察走勢。`;
+                return;
+            }
+
+            const sCurr = stockPath[currentStep];
+            const mCurr = marketPath[currentStep];
+            const sStop = stopHistory[currentStep];
+            const sPeak = peakHistory[currentStep];
+
+            let text = "";
+            if (hasTriggered) {
+                const dropFromPeak = ((sPeak - sCurr) / sPeak * 100).toFixed(1);
+                text = `🚨 <b>觸發出場警報！</b> 該個股由歷史最高點 $${sPeak.toFixed(1)} 下跌至 $${sCurr.toFixed(1)}，回檔幅度高達 ${dropFromPeak}%，已摜破你設定的 <b>${stopPct}%</b> 安全防線。系統已鎖定將其自動獲利了結。如果防守線設得太緊，就容易在大盤小波動或個股正常呼吸起伏中被提早洗出場。`;
+                document.getElementById('trigger-badge').classList.remove('scale-0');
+                document.getElementById('trigger-badge').classList.add('scale-100');
+            } else {
+                if (sCurr > mCurr) {
+                    text = `📈 <b>個股表現優於大盤：</b> 大盤價格目前為 $${mCurr.toFixed(1)}，但個股由於高 Beta/高成長固有波動，已經衝高至 $${sCurr.toFixed(1)}！同時，你的<b>移動防線也自動跟隨往上疊加拉抬到 $${sStop.toFixed(1)}</b>。這就是移動停損『讓利潤无限奔跑』的魅力。`;
+                } else {
+                    const buffer = ((sCurr - sStop) / sCurr * 100).toFixed(1);
+                    text = `📉 <b>個股目前面臨回檔：</b> 大盤稍作震盪，而這檔個股回踩至 $${sCurr.toFixed(1)}。此時，你的<b>移動防線定錨在 $${sStop.toFixed(1)} 穩如泰山</b>，拒絕向下撤退，距離被觸發出場還有約 <b>${buffer}%</b> 的緩衝空間。`;
+                }
+            }
+            logEl.innerHTML = text;
+        }
+
+        function animate() {
+            if (!isPlaying) return;
+
+            if (currentStep < maxSteps - 1 && !hasTriggered) {
+                currentStep++;
+                recalculateTrailingStops();
+                updateLog();
+                draw();
+                
+                setTimeout(() => {
+                    animationId = requestAnimationFrame(animate);
+                }, 85);
+            } else {
+                pauseSimulation();
+            }
+        }
+
+        function draw() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            ctx.clearRect(0, 0, w, h);
+
+            if (marketPath.length === 0 || stockPath.length === 0) return;
+
+            // Find boundaries to scale data perfectly on canvas
+            const allValues = [...marketPath, ...stockPath];
+            const maxVal = Math.max(...allValues) * 1.05;
+            const minVal = Math.min(...allValues) * 0.95;
+            const range = maxVal - minVal;
+
+            function getX(index) {
+                return (index / (maxSteps - 1)) * (w - 60) + 40;
+            }
+
+            function getY(val) {
+                return h - ((val - minVal) / range) * (h - 80) - 40;
+            }
+
+            // Draw grid lines
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([5, 5]);
+            for (let val = Math.ceil(minVal / 10) * 10; val < maxVal; val += 15) {
+                ctx.beginPath();
+                ctx.moveTo(40, getY(val));
+                ctx.lineTo(w - 20, getY(val));
+                ctx.stroke();
+                
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(`$${val}`, 12, getY(val) + 3);
+            }
+            ctx.setLineDash([]);
+
+            // Draw Full Benchmark Market Path (Faint Gray / SPY)
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(marketPath[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(marketPath[i]));
+            }
+            ctx.stroke();
+
+            // Draw Active Stock price path (Indigo)
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(stockPath[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(stockPath[i]));
+            }
+            ctx.stroke();
+
+            // Draw Trailing Stop price path (Rose)
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(stopHistory[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(stopHistory[i]));
+            }
+            ctx.stroke();
+
+            // Draw dynamic dots
+            if (currentStep > 0) {
+                const sPrice = stockPath[currentStep];
+                const sStop = stopHistory[currentStep];
+
+                // Stock dot
+                ctx.fillStyle = '#6366f1';
+                ctx.beginPath();
+                ctx.arc(getX(currentStep), getY(sPrice), 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Stop dot
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(getX(currentStep), getY(sStop), 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Highlight trigger dot if triggered
+                if (hasTriggered && triggerIndex !== -1) {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(getX(triggerIndex), getY(stockPath[triggerIndex]), 10, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Cross mark
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const tx = getX(triggerIndex);
+                    const ty = getY(stockPath[triggerIndex]);
+                    ctx.moveTo(tx - 4, ty - 4);
+                    ctx.lineTo(tx + 4, ty + 4);
+                    ctx.moveTo(tx + 4, ty - 4);
+                    ctx.lineTo(tx - 4, ty + 4);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Initialize script on window load
+        window.onload = function() {
+            resizeCanvas();
+            applyPreset('aapl'); // Default preset is Apple
+        };
+    </script>
+</body>
+</html>

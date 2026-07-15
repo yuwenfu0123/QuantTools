@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移動停損（Trailing Stop）動態模擬器</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-rose-600 text-white rounded-lg shadow-md shadow-rose-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900">移動停損 (Trailing Stop) 策略指南</h1>
+                    <p class="text-xs text-slate-500">動態鎖定獲利，讓利潤無限奔跑</p>
+                </div>
+            </div>
+            <nav class="flex gap-2">
+                <a href="#concept" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-rose-600 rounded-md transition-colors">核心概念</a>
+                <a href="#simulator" class="px-3.5 py-1.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-md shadow-sm transition-colors">動態模擬器</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12 flex-1 w-full">
+        
+        <section id="concept" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> 什麼是移動停損？
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900">告別一賣就漲、不賣就跌的「動態守護線」</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    常規的**固定停損**是設定一個死板的價格（例如 $100 買入，設定 $90 停損）。一旦股價一路上漲到 $150，你可能因為貪婪不想賣，隨後市場大跌跌回 $80，你的利潤不僅全吐回去，還面臨虧損。
+                </p>
+                <p class="text-slate-600 leading-relaxed">
+                    而**移動停損 (Trailing Stop)** 則是將停損價設定為一個**相對於「股價最高點」的比例（例如 10%）**：
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-rose-600 font-bold">1</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">只漲不跌的特性</h4>
+                            <p class="text-sm text-slate-500 mt-1">當 ETF 價格一路上漲時，你的停損點會隨之**自動往上推**（與歷史最高價保持固定的 10% 距離）。</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl text-rose-600 font-bold">2</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">高檔鎖定利潤</h4>
+                            <p class="text-sm text-slate-500 mt-1">當 ETF 價格從最高點回檔超過 10% 時，就會**立刻觸發出場**，幫你把大部分的獲利安穩鎖進口袋。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPARISON CARD -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                <h4 class="font-bold text-slate-900 text-lg">💡 移動停損 vs. 固定停損</h4>
+                
+                <div class="space-y-3">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs font-bold text-slate-400 uppercase">情境：$100 買入，隨後漲到 $200，最後崩跌至 $80</span>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <div class="text-xs font-semibold text-amber-600">固定停損 (設在 $90)</div>
+                                <p class="text-xs text-slate-500 mt-1">當價格衝到 $200 時，停損線依然死守在 $90。最後大跌回 $90 才被動出場。<b>眼睜睜看著 $100 的價差獲利歸零並虧損。</b></p>
+                            </div>
+                            <div class="border-l border-slate-200 pl-4">
+                                <div class="text-xs font-semibold text-emerald-600">移動停損 (設 10%)</div>
+                                <p class="text-xs text-slate-500 mt-1">當價格衝到 $200 時，最高停損點已升至 $180。<b>隨後下跌一碰到 $180 即自動獲利了結，穩賺 80% 的利潤！</b></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50/50 rounded-xl p-4 border border-rose-100">
+                    <h5 class="text-xs font-bold text-rose-800">適合的標的類別：</h5>
+                    <p class="text-xs text-rose-700 mt-1">
+                        特別適合中長期持有但波動較大的「成長型或產業型 ETF」（如 QQQ、VGT、XLE），能讓你在牛市中抱緊波段，在熊市來臨前自動下車。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulator" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">📊 移動停損互動路徑模擬器</h3>
+                    <p class="text-xs text-slate-500 mt-1">點擊播放，觀察股價（藍線）攀升時，移動停損點（紅線）與高檔鎖定價的即時變化</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn-play" onclick="toggleSimulation()" class="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                        <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <span id="play-text">啟動模擬</span>
+                    </button>
+                    <button onclick="resetSimulation()" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all">
+                        重置線路
+                    </button>
+                </div>
+            </div>
+
+            <!-- SIMULATION CONTROLS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">調整移動停損趴數 (%)</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="input-stop-pct" min="5" max="30" step="1" value="10" oninput="updateStopPctFromSlider(this.value)" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600">
+                        <span id="lbl-stop-pct" class="text-sm font-bold text-rose-600 w-12 text-right">10%</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">比例越小越敏感，越大越能忍受波動</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">模擬市場走勢</label>
+                    <select id="select-market-type" onchange="resetSimulation()" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <option value="bull">先漲後跌波段 (牛轉熊)</option>
+                        <option value="bounce">震盪回升波段 (下洗上攻)</option>
+                        <option value="crash">單邊崩跌 (空頭預防)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 text-center">
+                        <span class="text-[10px] text-slate-400">目前/歷史最高價</span>
+                        <div id="lbl-peak-price" class="text-sm font-bold text-indigo-700 mt-0.5">$100.0</div>
+                    </div>
+                    <div class="p-3 bg-rose-50/50 rounded-lg border border-rose-100 text-center">
+                        <span class="text-[10px] text-slate-400">即時移動停損價</span>
+                        <div id="lbl-stop-price" class="text-sm font-bold text-rose-700 mt-0.5">$90.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE CANVAS/CHART -->
+            <div class="relative bg-slate-900 rounded-xl overflow-hidden border border-slate-800" style="height: 350px;">
+                <!-- Chart Legend Overlay -->
+                <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-sm p-3 rounded-lg border border-slate-800 text-xs space-y-1.5 z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-indigo-400 inline-block"></span>
+                        <span class="text-slate-300">即時 ETF 股價</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-rose-500 inline-block"></span>
+                        <span class="text-slate-300">動態移動停損價</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-0.5 bg-amber-400 border-dashed border-t inline-block"></span>
+                        <span class="text-slate-300">歷史最高價基準</span>
+                    </div>
+                </div>
+
+                <div id="trigger-badge" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-rose-600 text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg border border-rose-500 scale-0 transition-transform duration-300 z-20 flex items-center gap-2">
+                    <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>觸發移動停損！已自動賣出出場！</span>
+                </div>
+
+                <canvas id="sim-canvas" class="w-full h-full block"></canvas>
+            </div>
+
+            <!-- SIMULATION LOGS / INSIGHTS -->
+            <div id="simulation-summary" class="bg-indigo-50/40 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-900 space-y-2">
+                <span class="font-bold text-indigo-950 text-sm">💡 模擬觀察日誌</span>
+                <p id="log-text" class="leading-relaxed">
+                    請點擊「啟動模擬」開始追蹤線路。你可以隨時調整左上角的停損百分比，觀察當股價拉升時，下方停損線如何「同升不同降」。
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-slate-400 text-xs">
+        <p>© 2026 ETF 資金配置智慧指南. 全球與美股市場適用.</p>
+        <p class="mt-1 text-slate-300">本模擬工具所採用之行情數據為模擬波段演示，旨在展示停損機制邏輯，非實際交易報價。</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('sim-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let animationId = null;
+        let isPlaying = false;
+        
+        let stopPct = 10; // percentage distance
+        let currentStep = 0;
+        let maxSteps = 150;
+        
+        let priceHistory = [];
+        let peakHistory = [];
+        let stopHistory = [];
+        
+        let runningPeak = 100;
+        let hasTriggered = false;
+        let triggerIndex = -1;
+
+        // Resize handler for high quality canvas drawing
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Generator of paths depending on market type
+        function generatePath(type) {
+            let path = [100];
+            let peak = 100;
+            let current = 100;
+
+            if (type === 'bull') {
+                // Bull leading to crash
+                for (let i = 1; i < maxSteps; i++) {
+                    if (i < 80) {
+                        // Rising with small pullbacks
+                        current += Math.random() * 5 - 1.8;
+                    } else if (i < 110) {
+                        // Flattens out and plateaus
+                        current += Math.random() * 3 - 2;
+                    } else {
+                        // Sharp market crash
+                        current -= Math.random() * 6 + 1;
+                    }
+                    path.push(Math.max(current, 10));
+                }
+            } else if (type === 'bounce') {
+                // Shakeout then massive run
+                for (let i = 1; i < maxSteps; i++) {
+                    if (i < 40) {
+                        // Shaking out down to ~80
+                        current -= Math.random() * 3 - 0.8;
+                    } else if (i < 110) {
+                        // Steady rally
+                        current += Math.random() * 4 - 1.2;
+                    } else {
+                        // Slow cooling off
+                        current -= Math.random() * 4 - 1;
+                    }
+                    path.push(Math.max(current, 10));
+                }
+            } else {
+                // Continuous crash
+                for (let i = 1; i < maxSteps; i++) {
+                    current -= Math.random() * 4 - 1.2;
+                    path.push(Math.max(current, 10));
+                }
+            }
+            return path;
+        }
+
+        let rawPricePath = [];
+
+        function updateStopPctFromSlider(val) {
+            stopPct = parseFloat(val);
+            document.getElementById('lbl-stop-pct').innerText = `${stopPct}%`;
+            
+            // Recalculate trailing stop arrays up to current index
+            recalculateStops();
+            draw();
+        }
+
+        function recalculateStops() {
+            if (rawPricePath.length === 0) return;
+            
+            peakHistory = [];
+            stopHistory = [];
+            runningPeak = rawPricePath[0];
+            hasTriggered = false;
+            triggerIndex = -1;
+
+            for (let i = 0; i <= currentStep; i++) {
+                const currentPrice = rawPricePath[i];
+                if (currentPrice > runningPeak) {
+                    runningPeak = currentPrice;
+                }
+                const currentStop = runningPeak * (1 - stopPct / 100);
+                
+                peakHistory.push(runningPeak);
+                stopHistory.push(currentStop);
+
+                if (currentPrice <= currentStop && !hasTriggered) {
+                    hasTriggered = true;
+                    triggerIndex = i;
+                }
+            }
+            
+            // Update labels
+            if (currentStep < rawPricePath.length) {
+                document.getElementById('lbl-peak-price').innerText = `$${peakHistory[currentStep].toFixed(1)}`;
+                document.getElementById('lbl-stop-price').innerText = `$${stopHistory[currentStep].toFixed(1)}`;
+            }
+        }
+
+        function toggleSimulation() {
+            if (isPlaying) {
+                pauseSimulation();
+            } else {
+                startSimulation();
+            }
+        }
+
+        function startSimulation() {
+            if (currentStep >= maxSteps - 1 || hasTriggered) {
+                resetSimulation();
+            }
+            isPlaying = true;
+            document.getElementById('play-text').innerText = "暫停模擬";
+            document.getElementById('play-icon').innerHTML = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>';
+            animate();
+        }
+
+        function pauseSimulation() {
+            isPlaying = false;
+            document.getElementById('play-text').innerText = "啟動模擬";
+            document.getElementById('play-icon').innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetSimulation() {
+            pauseSimulation();
+            const marketType = document.getElementById('select-market-type').value;
+            rawPricePath = generatePath(marketType);
+            
+            currentStep = 0;
+            priceHistory = [rawPricePath[0]];
+            peakHistory = [rawPricePath[0]];
+            stopHistory = [rawPricePath[0] * (1 - stopPct / 100)];
+            runningPeak = rawPricePath[0];
+            hasTriggered = false;
+            triggerIndex = -1;
+
+            document.getElementById('trigger-badge').classList.remove('scale-100');
+            document.getElementById('trigger-badge').classList.add('scale-0');
+            document.getElementById('lbl-peak-price').innerText = `$${runningPeak.toFixed(1)}`;
+            document.getElementById('lbl-stop-price').innerText = `$${stopHistory[0].toFixed(1)}`;
+            
+            updateLog();
+            draw();
+        }
+
+        function updateLog() {
+            const logEl = document.getElementById('log-text');
+            const marketType = document.getElementById('select-market-type').value;
+
+            if (currentStep === 0) {
+                logEl.innerHTML = `已重置模擬路線。本輪設定：<b>移動停損 ${stopPct}%</b>。點擊啟動開始觀察動態追蹤。`;
+                return;
+            }
+
+            let text = "";
+            const currPrice = priceHistory[currentStep];
+            const currStop = stopHistory[currentStep];
+            const currPeak = peakHistory[currentStep];
+
+            if (hasTriggered) {
+                const dropFromPeak = ((currPeak - currPrice) / currPeak * 100).toFixed(1);
+                text = `🚨 <b>觸發出場停損！</b> 股價由最高點 $${currPeak.toFixed(1)} 下跌至 $${currPrice.toFixed(1)} (回檔幅度達 ${dropFromPeak}%)，觸發了你預設的 ${stopPct}% 移動停損點。系統自動在 <b>$${currStop.toFixed(1)}</b> 左右幫你全數出清，成功的鎖定了前面的上漲獲利！`;
+                document.getElementById('trigger-badge').classList.remove('scale-0');
+                document.getElementById('trigger-badge').classList.add('scale-100');
+            } else {
+                if (currPrice === currPeak) {
+                    text = `📈 <b>股價創歷史新高！</b> 目前價格 $${currPrice.toFixed(1)}。注意看：由於股價創高，下方的移動停損點也跟著順勢被動拉高到 <b>$${currStop.toFixed(1)}</b>。你的防禦壁壘正自動往上疊加。`;
+                } else {
+                    const diffToStop = ((currPrice - currStop) / currPrice * 100).toFixed(1);
+                    text = `📉 <b>股價目前處於回檔：</b> 價格從高點稍微滑落到 $${currPrice.toFixed(1)}。此時，你的歷史最高基準鎖定在 $${currPeak.toFixed(1)}，<b>停損線保持在 $${currStop.toFixed(1)} 水平不動 (同升不同降)</b>。距離觸發出場還有約 ${diffToStop}% 的緩衝空間。`;
+                }
+            }
+            logEl.innerHTML = text;
+        }
+
+        function animate() {
+            if (!isPlaying) return;
+
+            if (currentStep < maxSteps - 1 && !hasTriggered) {
+                currentStep++;
+                priceHistory.push(rawPricePath[currentStep]);
+                
+                recalculateStops();
+                updateLog();
+                draw();
+                
+                // Pause for standard visual step interval (approx 100ms)
+                setTimeout(() => {
+                    animationId = requestAnimationFrame(animate);
+                }, 100);
+            } else {
+                pauseSimulation();
+            }
+        }
+
+        // DRAWING LOGIC
+        function draw() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            ctx.clearRect(0, 0, w, h);
+
+            if (rawPricePath.length === 0) return;
+
+            // Find boundaries of data to scale properly on viewport
+            const maxVal = Math.max(...rawPricePath) * 1.05;
+            const minVal = Math.min(...rawPricePath) * 0.95;
+            const range = maxVal - minVal;
+
+            function getX(index) {
+                return (index / (maxSteps - 1)) * (w - 60) + 40;
+            }
+
+            function getY(val) {
+                return h - ((val - minVal) / range) * (h - 80) - 40;
+            }
+
+            // Draw grid lines
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([5, 5]);
+            for (let val = Math.ceil(minVal / 10) * 10; val < maxVal; val += 10) {
+                ctx.beginPath();
+                ctx.moveTo(40, getY(val));
+                ctx.lineTo(w - 20, getY(val));
+                ctx.stroke();
+                
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(`$${val}`, 10, getY(val) + 3);
+            }
+            ctx.setLineDash([]);
+
+            // Draw full reference path in faint gray
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(rawPricePath[0]));
+            for (let i = 1; i < maxSteps; i++) {
+                ctx.lineTo(getX(i), getY(rawPricePath[i]));
+            }
+            ctx.stroke();
+
+            // Draw current active price path (Indigo)
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(priceHistory[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(priceHistory[i]));
+            }
+            ctx.stroke();
+
+            // Draw Trailing Peak line (dashed Amber)
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 4]);
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(peakHistory[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(peakHistory[i]));
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw Trailing Stop price path (Red/Rose)
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(stopHistory[0]));
+            for (let i = 1; i <= currentStep; i++) {
+                ctx.lineTo(getX(i), getY(stopHistory[i]));
+            }
+            ctx.stroke();
+
+            // Draw dynamic cursor points for current price and current stop
+            if (priceHistory.length > 0) {
+                const lastIdx = currentStep;
+                const lastPrice = priceHistory[lastIdx];
+                const lastStop = stopHistory[lastIdx];
+
+                // Price dot
+                ctx.fillStyle = '#6366f1';
+                ctx.beginPath();
+                ctx.arc(getX(lastIdx), getY(lastPrice), 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Stop dot
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(getX(lastIdx), getY(lastStop), 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Highlight trigger dot if triggered
+                if (hasTriggered && triggerIndex !== -1) {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(getX(triggerIndex), getY(priceHistory[triggerIndex]), 10, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Cross mark
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const tx = getX(triggerIndex);
+                    const ty = getY(priceHistory[triggerIndex]);
+                    ctx.moveTo(tx - 4, ty - 4);
+                    ctx.lineTo(tx + 4, ty + 4);
+                    ctx.moveTo(tx + 4, ty - 4);
+                    ctx.lineTo(tx - 4, ty + 4);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Start initialization
+        window.onload = function() {
+            resizeCanvas();
+            resetSimulation();
+        };
+    </script>
+</body>
+</html>
